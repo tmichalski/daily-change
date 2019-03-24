@@ -19,18 +19,20 @@ class FileImportService {
     private static final int DESCRIPTION = 2
     private static final int ON_HAND = 3
     private static final int ON_ORDER = 4
+    private static final int NEXT_PO = 15
     private static final int POD = 23
     private static final int DAILY_RATE = 27
     private static final int BRAND_MANAGER = 29
 
     private static final Map headers = [
-        'ITEM':ITEM,
-        'DESCRIPTION':DESCRIPTION,
-        'ON_HAND':ON_HAND,
-        'ON_ORDER':ON_ORDER,
-        'POINTS OF DIST':POD,
-        'DAILY RATE':DAILY_RATE,
-        'BRAND MANAGER':BRAND_MANAGER
+        'ITEM': ITEM,
+        'DESCRIPTION': DESCRIPTION,
+        'ON HAND': ON_HAND,
+        'ON ORDER': ON_ORDER,
+        'NEXT PO #': NEXT_PO,
+        'POINTS OF DIST': POD,
+        'DAILY RATE': DAILY_RATE,
+        'BRAND MANAGER': BRAND_MANAGER
     ]
 
     @Value('${report.path}')
@@ -78,10 +80,12 @@ class FileImportService {
                         'ITEM': fileRow[ITEM],
                         'ON HAND': fileRow[ON_HAND],
                         'ON ORDER': fileRow[ON_ORDER],
+                        'NEXT PO #': fileRow[NEXT_PO],
                         'POINTS OF DIST': fileRow[POD],
                         'DAILY RATE': fileRow[DAILY_RATE],
                         'ON HAND DELTA': 0,
                         'ON HAND SURPRISE': '',
+                        'ON HAND UP w/o PO': '',
                         'ON ORDER DELTA': 0,
                         'ON ORDER LOST': '',
                         'POINTS OF DIST DELTA': 0,
@@ -101,6 +105,11 @@ class FileImportService {
                             itemRow['ON HAND DELTA'] = itemRow['ON HAND'].toBigDecimal() - lastRow['ON HAND'].toBigDecimal()
                             itemRow['ON ORDER DELTA'] = itemRow['ON ORDER'].toBigDecimal() - lastRow['ON ORDER'].toBigDecimal()
                             itemRow['POINTS OF DIST DELTA'] = itemRow['POINTS OF DIST'].toBigDecimal() - lastRow['POINTS OF DIST'].toBigDecimal()
+
+                            // ON HAND UP w/o PO
+                            if (itemRow['ON HAND DELTA'] > 0 && !lastRow['NEXT PO #']) {
+                                itemRow['ON HAND UP w/o PO'] = 'X'
+                            }
 
                             // ON HAND SURPRISE
                             if (itemRow['ON ORDER DELTA'] == 0 && itemRow['ON HAND DELTA'] > 0) {
@@ -138,9 +147,11 @@ class FileImportService {
                 'ON HAND',
                 'ON HAND DELTA',
                 'ON HAND SURPRISE',
+                'ON HAND UP w/o PO',
                 'ON ORDER',
                 'ON ORDER DELTA',
                 'ON ORDER LOST',
+                'NEXT PO #',
                 'POINTS OF DIST',
                 'POINTS OF DIST DELTA',
                 'POINTS OF DIST > 10',
@@ -158,9 +169,11 @@ class FileImportService {
                         itemRow['ON HAND'],
                         itemRow['ON HAND DELTA'],
                         itemRow['ON HAND SURPRISE'],
+                        itemRow['ON HAND UP w/o PO'],
                         itemRow['ON ORDER'],
                         itemRow['ON ORDER DELTA'],
                         itemRow['ON ORDER LOST'],
+                        itemRow['NEXT PO #'],
                         itemRow['POINTS OF DIST'],
                         itemRow['POINTS OF DIST DELTA'],
                         itemRow['POINTS OF DIST > 10'],
